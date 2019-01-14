@@ -1,0 +1,28 @@
+{"1.1.0",
+[{<<"cowboy">>,{pkg,<<"cowboy">>,<<"2.4.0">>},1},
+ {<<"cowlib">>,{pkg,<<"cowlib">>,<<"2.3.0">>},2},
+ {<<"jiffy">>,{pkg,<<"jiffy">>,<<"0.15.2">>},1},
+ {<<"jsx">>,
+  {git,"https://github.com/talentdeficit/jsx.git",
+       {ref,"3074d4865b3385a050badf7828ad31490d860df5"}},
+  1},
+ {<<"leptus">>,
+  {git,"git://github.com/s1n4/leptus.git",
+       {ref,"e0d9bd2270dfa85bd5922e0a5c2d0289d2dc0ef9"}},
+  0},
+ {<<"mochiweb">>,
+  {git,"https://github.com/mochi/mochiweb.git",
+       {ref,"aacb8f2e2fd98a729bd4f54e028c6b742bfb9dcb"}},
+  1},
+ {<<"ranch">>,{pkg,<<"ranch">>,<<"1.5.0">>},2},
+ {<<"rooster">>,
+  {git,"git://github.com/fbeline/rooster.git",
+       {ref,"e8f4d4f1fe2fd901371361dd00f0cb64515424b0"}},
+  0}]}.
+[
+{pkg_hash,[
+ {<<"cowboy">>, <<"F1B72FABE9C8A5FC64AC5AC85FB65474D64733D1DF52A26FAD5D4BA3D9F70A9F">>},
+ {<<"cowlib">>, <<"BBD58EF537904E4F7C1DD62E6AA8BC831C8183CE4EFA9BD1150164FE15BE4CAA">>},
+ {<<"jiffy">>, <<"DE266C390111FD4EA28B9302F0BC3D7472468F3B8E0ACEABFBEFA26D08CD73B7">>},
+ {<<"ranch">>, <<"F04166F456790FEE2AC1AA05A02745CC75783C2BFB26D39FAF6AEFC9A3D3A58A">>}]}
+].
