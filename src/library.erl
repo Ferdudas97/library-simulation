@@ -1,7 +1,7 @@
 -module(library).
 
 %% API
--export([init/1, handle_call/3, handle_cast/2, start_link/1, get_all_books/1, return_book/2, borrow_book/3, add_new_book/1, handle_info/2, get_all_books_id/1, get_info/1, start/1, stop/1]).
+-export([init/1, handle_call/3, handle_cast/2, start_link/1, get_all_books/1, return_book/2, borrow_book/3, add_new_book/1, handle_info/2, get_all_books_id/1, get_info/1, start/1, stop/1, exit/1]).
 -behavior(gen_server).
 
 
@@ -33,7 +33,8 @@ stop(Pid) ->
   gen_server:cast(Pid,stop).
 start(Pid) ->
   gen_server:cast(Pid,start).
-
+exit(Pid) ->
+  gen_server:cast(Pid,exit).
 
 get_all_books_id(Pid) -> gen_server:call(Pid, get_all_not_rented_id).
 get_all_books(Pid) -> gen_server:call(Pid, get_all_books).
@@ -98,7 +99,9 @@ handle_cast(start, State) ->
    Upd= rental:update_time(rentalsDb(State),Delta),
   US = update_rentals(Upd,State),
   {ok,T} = timer:send_interval(simulation:interval_milliseconds(), update),
-  {noreply,set_timer(T,US)}.
+  {noreply,set_timer(T,US)};
+handle_cast(exit,State) ->
+  {stop,shutdown,State}.
 
 handle_info(info, State) ->
   show_info(State),

@@ -1,7 +1,7 @@
 -module(client).
 
 %% API
--export([handle_info/2, handle_call/3, handle_cast/2, start_link/2, init/1, add/1, info/1, stop/1, start/1]).
+-export([handle_info/2, handle_call/3, handle_cast/2, start_link/2, init/1, add/1, info/1, stop/1, start/1, exit/1]).
 -behavior(gen_server).
 -record(client, {id, firstName, secondName, age, rentedBooks = []}).
 -record(state, {clientsDb, pid, timer}).
@@ -37,7 +37,8 @@ stop(Pid) ->
 start(Pid) ->
   gen_server:cast(Pid,start).
 
-
+exit(Pid) ->
+  gen_server:cast(Pid,exit).
 %% this clause will be called every 15 seconds
 handle_info(interval, State) ->
   ClientsDB = get_clients(State),
@@ -91,8 +92,12 @@ is_borrowing(Client) ->
 rent(Client, Pid) ->
   Ids = library:get_all_books_id(Pid),
   Id = utills:get_random_element(Ids),
-  library:borrow_book(Pid, Id, Client#client.id),
-  add_book_to_rented(Id, Client).
+  if
+    Id=/=nothing ->  library:borrow_book(Pid, Id, Client#client.id),
+      add_book_to_rented(Id, Client);
+    true -> Client
+  end.
+
 
 
 
@@ -131,7 +136,10 @@ handle_cast(stop, State) ->
 
 handle_cast(start, State) ->
   {ok,T} = timer:send_interval(simulation:interval_milliseconds(), interval),
-  {noreply,set_timer(T,State)}.
+  {noreply,set_timer(T,State)};
+handle_cast(exit,State) ->
+  {stop,shutdown,State}.
+
 
 
 

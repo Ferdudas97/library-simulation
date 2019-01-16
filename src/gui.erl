@@ -13,10 +13,10 @@
 -export([init/1, handle_call/3, handle_cast/2, start_link/3, start/0, handle_info/2]).
 -behaviour(gen_server).
 
--record(state, {lpid :: pid(), cpid :: pid(), frame, text, env,timer}).
+-record(state, {lpid :: pid(), cpid :: pid(), frame, text, env, timer}).
 
 get_timer(State) -> State#state.timer.
-set_timer(T,State) -> State#state{timer = T}.
+set_timer(T, State) -> State#state{timer = T}.
 get_lib(State) -> State#state.lpid.
 get_client(State) -> State#state.cpid.
 new_state(F, Text, Env) -> #state{frame = F, text = Text, env = Env}.
@@ -41,6 +41,13 @@ create_gui(F, Pid) ->
 
   StopStartButton = wxButton:new(F, 4, [{label, "Stop"}, {pos, {0, 200}}, {size, {150, 50}}]),
 
+  wxWindow:connect(F, close_window, [{callback,
+    fun(Evt, Obj) ->
+      io:format("koniec\n"),
+      gen_server:cast(Pid, exit),
+      wxWindow:destroy(F)
+
+    end}]),
   wxButton:connect(AddClientButton, command_button_clicked, [{callback,
     fun(Evt, Obj) ->
       gen_server:cast(Pid, add_client)
@@ -59,10 +66,10 @@ create_gui(F, Pid) ->
       if
         Label =:= "Start" ->
           gen_server:cast(Pid, start),
-          wxButton:setLabel(StopStartButton,"Stop");
+          wxButton:setLabel(StopStartButton, "Stop");
         true ->
           gen_server:cast(Pid, stop),
-          wxButton:setLabel(StopStartButton,"Start")
+          wxButton:setLabel(StopStartButton, "Start")
 
 
       end
@@ -71,7 +78,12 @@ create_gui(F, Pid) ->
   }]),
   wxButton:connect(StartButton, command_button_clicked, [{callback,
     fun(Evt, Obj) ->
-      gen_server:cast(Pid, {start, value(ClText), value(LiText)})
+      X = utills:is_integer(wxTextCtrl:getValue(ClText)),
+      Y = utills:is_integer(wxTextCtrl:getValue(LiText)),
+      if
+        X =:= true, Y =:= true -> gen_server:cast(Pid, {start, value(ClText), value(LiText)});
+        true -> io:format("wrong parameters")
+      end
 
 
     end
@@ -89,8 +101,15 @@ value(Counter) ->
 
 
 handle_cast({start, C, L}, State) ->
-  {ok,T} =timer:send_interval(simulation:interval_milliseconds(), update_text),
-   TS = set_timer(T,State),
+  {ok, T} = timer:send_interval(simulation:interval_milliseconds(), update_text),
+  TS = set_timer(T, State),
+  LP = get_lib(State),
+  CP = get_client(State),
+  if
+    LP =/= undefined, CP =/= undefined ->   simulation:stop(CP, LP);
+      true -> nothing
+  end,
+
   {noreply, new_simulation(C, L, TS)};
 handle_cast(add_client, State) ->
   P = get_client(State),
@@ -105,8 +124,8 @@ handle_cast(start, State) when State#state.cpid =/= undefined ->
   C = get_client(State),
   L = get_lib(State),
   simulation:start(C, L),
-  {ok,T} =timer:send_interval(simulation:interval_milliseconds(), update_text),
-  TS = set_timer(T,State),
+  {ok, T} = timer:send_interval(simulation:interval_milliseconds(), update_text),
+  TS = set_timer(T, State),
   {noreply, TS};
 handle_cast(stop, State) when State#state.cpid =/= undefined ->
   C = get_client(State),
@@ -115,9 +134,10 @@ handle_cast(stop, State) when State#state.cpid =/= undefined ->
   timer:cancel(get_timer(State)),
   {noreply, State};
 
-handle_cast(start ,State) ->  {noreply, State};
-handle_cast(stop ,State) ->  {noreply, State}.
-
+handle_cast(start, State) -> {noreply, State};
+handle_cast(stop, State) -> {noreply, State};
+handle_cast(exit, State) ->
+  {stop, shutdown, State}.
 handle_info(update_text, State) ->
   LInfo = library:get_info(get_lib(State)),
   CInfo = client:info(get_client(State)),
@@ -126,9 +146,7 @@ handle_info(update_text, State) ->
   wxStaticText:destroy(get_text(State)),
   T = text(get_frame(State), CInfo ++ LInfo),
   {noreply, set_text(T, State)};
-handle_info(interval, State) ->  {noreply, State}.
-
-
+handle_info(interval, State) -> {noreply, State}.
 
 start() ->
   Wx = wx:new(),

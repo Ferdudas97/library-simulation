@@ -1,8 +1,9 @@
 
--module(simulation).
+-module(
+simulation).
 
 %% API
--export([main/2, interval_milliseconds/0, stop/2, start/2]).
+-export([main/2, interval_milliseconds/0, stop/2, start/2, exit/2]).
 
 interval_milliseconds() -> 1000.
 
@@ -14,6 +15,9 @@ stop(Cpid,LPid)  ->
   library:stop(LPid),
   client:stop(Cpid).
 
+exit(Cpid,LPid) ->
+  library:exit(LPid),
+  client:exit(Cpid).
 main(ClientsNumber, BookNumber) ->
   {ok,LPid} = library:start_link(BookNumber),
   {ok,CPid}= client:start_link(ClientsNumber,LPid),
