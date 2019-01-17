@@ -43,8 +43,6 @@ create_n_book(Books,0) -> [];
 create_n_book(Books,N) ->
   [create_book(N+maps:size(Books))|create_n_book(Books,N-1)].
 create_n_new_books(BooksDb,N) ->
-  io:format("  LOL n = ~p \n",[N]),
-
   Books = create_n_book(BooksDb,N),
   Mapped = utills:list_to_map(Books,fun get_id/1),
   maps:merge(BooksDb,Mapped).

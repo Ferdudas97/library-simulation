@@ -150,8 +150,8 @@ handle_info(interval, State) -> {noreply, State}.
 
 start() ->
   Wx = wx:new(),
-  F = wxFrame:new(Wx, -1, "Hello, World!"),
-  Text = text(F, "lol"),
+  F = wxFrame:new(Wx, -1, "Symulacja!"),
+  Text = text(F, "Text"),
   Env = wx:get_env(),
   {ok, P} = start_link(F, Text, Env),
 
